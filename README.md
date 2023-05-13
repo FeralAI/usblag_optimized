@@ -2,6 +2,8 @@
 
 Arduino Project to measure USB Controller input lag...optimized.
 
+This is an optimized version of the original lag testing sketch by Loïc *WydD* Petit. The original version can be found on here: https://gitlab.com/loic.petit/usblag. The remaining README content is directly from the original repository.
+
 ## Hardware requirement
 
 You need a arduino board with a [USB Host Shield](https://github.com/felis/USB_Host_Shield_2.0) properly installed.
