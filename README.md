@@ -34,7 +34,7 @@ The serial monitor will support different commands to play with your device:
 | p | Override polling interval like a PC would do |
 | n | Set the polling interval back to normal |
 | sX | Override polling interval to Xms |
-| l | Displays the latest loop duration |
+| = | Displays min/max/avg/stddev from test |
 
 ## Protocol
 

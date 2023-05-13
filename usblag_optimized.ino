@@ -1,4 +1,4 @@
-#define BUTTON_PIN 2
+#define BUTTON_PIN 7
 
 #define ENABLE_BT 0
 #include "HIDDriver.h"
@@ -9,6 +9,11 @@
 #include "HIDReportMask.h"
 
 #include "desc.h"
+
+float min = 0.0;
+float max = 0.0;
+float sumx = 0.0;
+float sumx2 = 0.0;
 
 unsigned long nextchange;
 unsigned long time;
@@ -64,9 +69,9 @@ class TimingManager {
 			address = bAddress;
 			nextPollingTime = 0;
 			memset(prevBuffer, 0, BUFFER_SIZE);
-			Serial.print("Interval:\t");
+      		Serial.print(F("Interval:\t"));
 			Serial.print(interval);
-			Serial.println("ms");
+      		Serial.println(F("ms"));
 		}
 		bool canPoll() {
 			if (!doPoll || !pollingEP) return false;
@@ -86,7 +91,7 @@ class TimingManager {
 			uint16_t buffer_size = pollingEP->maxPktSize;
 			uint8_t res = usbRef->inTransfer(address, pollingEP->epAddr, &buffer_size, pollBuffer);
 			if (res != 0 && res != hrNAK) {
-				Serial.print("Cant poll device ");
+				Serial.print(F("Cant poll device "));
 				Serial.print(res);
 				Serial.print("\n");
 			}
@@ -97,6 +102,14 @@ class TimingManager {
 			float diff = (micros() - time) / 1000.0;
 			report_mask.apply_mask(len, buf);
 			if (memcmp(buf, prevBuffer, len) != 0) {
+        		sumx += diff;
+        		sumx2 += (diff * diff);
+        		if (diff >= max) {
+          			max = diff;
+        		}
+        		if (diff <= min || min == 0.0) {
+          			min = diff;
+        		}
 				Serial.println(diff);
 				/*for (uint8_t i = 0 ; i < len; ++i) {
 					print_hex(buf[i], 8);
@@ -118,7 +131,7 @@ class BTController : public BTHID, public TimingManager {
 		virtual void OnInitBTHID() {
 			TimingManager::doInit(0, 0, NULL);
 			enable_sixaxis();
-			Serial.print("BTHID Controller initialized\n");
+      		Serial.print(F("BTHID Controller initialized\n"));
 			report_mask.do_mask = false;
 		}
 		virtual void ParseBTHIDData(uint8_t len, uint8_t *buf) {
@@ -183,13 +196,13 @@ class XBoxController : public XInputDriver, public TimingManager {
 			if (res) return res;
 			TimingManager::doInit(bInterval, bAddress, &epInfo[ XBOX_INPUT_PIPE ]);
 			if(isXboxOne) {
-				Serial.print("XBOX One Controller initialized\n");
+        		Serial.print(F("XBOX One Controller initialized\n"));
 				
 				startDevice();
 				
 				//initRumble();
 			} else {
-				Serial.print("XBOX Controller initialized\n");
+        		Serial.print(F("XBOX Controller initialized\n"));
 			}
 			report_mask.interesting_bit_idx = 2*8;
 			for (int i = 0; i < report_mask.interesting_bit_idx ; i++) {
@@ -215,12 +228,12 @@ class HIDController : public HIDDriver, public TimingManager {
 			TimingManager::doInit(pollInterval, bAddress, &epInfo[hidInterfaces[0].epIndex[epInterruptInIndex]]);
 			
 			if (GetReportDescr(0, &report_mask)) {
-				Serial.println("Cannot read HID report");
+        		Serial.println(F("Cannot read HID report"));
 			}
 			if (bNumIface > 1) {
-				Serial.println("Warning! Multi-channel HID device not supported! Selecting only the first one.");
+       			Serial.println(F("Warning! Multi-channel HID device not supported! Selecting only the first one."));
 			}
-			Serial.print("HID Controller initialized\n");
+      		Serial.print(F("HID Controller initialized\n"));
 			return 0;
 		}
 		uint8_t Release() {
@@ -253,10 +266,10 @@ void setup() {
 #if !defined(__MIPSEL__)
 	while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
 #endif
-	Serial.println("Start");
+  	Serial.println(F("Start"));
 
 	if (Usb.Init() == -1)
-		Serial.println("OSC did not start.");
+    	Serial.println(F("OSC did not start."));
 
 	randomSeed(analogRead(0));
 	delay(200);
@@ -271,7 +284,7 @@ void loop() {
 	if (total < 1000) {
 		if (micros() >= nextchange) {
 			if (time != 0) {
-				Serial.println("Input was dropped!");
+      			Serial.println(F("Input was dropped!"));
 			}
 			button = !button;
 			digitalWrite(BUTTON_PIN, button);
@@ -281,51 +294,55 @@ void loop() {
 		}
 	}
 	else if (Serial.available()) {
-		Serial.println("Waiting for input...");
+		// Serial.println(F("Waiting for input..."));
 		byte inByte = Serial.read();
 		uint8_t reading_interval;
 		switch (inByte) {
 			case '1':
 				button = true;
 				digitalWrite(BUTTON_PIN, button);
-				Serial.println("High");
+				Serial.println(F("High"));
 				time = micros();
 				break;
 			case '0':
 				button = false;
 				digitalWrite(BUTTON_PIN, button);
-				Serial.println("Low");
+				Serial.println(F("Low"));
 				time = micros();
 				break;
 			case 'b':
 				Hid.overrideInterval = 255;
 				xbox.overrideInterval = 255;
-				Serial.println("Switch to burn mode: disabling polling interval");
+				Serial.println(F("Switch to burn mode: disabling polling interval"));
 				break;
 			case 'o':
 				Hid.overrideInterval = 1;
 				xbox.overrideInterval = 1;
-				Serial.println("Override polling interval to 1ms!");
+				Serial.println(F("Override polling interval to 1ms!"));
 				break;
 			case 'n':
 				Hid.overrideInterval = 0;
 				xbox.overrideInterval = 0;
-				Serial.println("Back to normal polling interval!");
+        		Serial.println(F("Back to normal polling interval!"));
 				break;
 			case 'p':
 				reading_interval = intervalPow2(Hid.pollingInterval ? Hid.pollingInterval : xbox.pollingInterval);
 				Hid.overrideInterval = reading_interval;
 				xbox.overrideInterval = reading_interval;
-				Serial.print("Override polling interval to ");
+        		Serial.print(F("Override polling interval to "));
 				Serial.print(reading_interval);
-				Serial.print("ms!");
+        		Serial.print(F("ms!"));
 				break;
 			case 't':
+        		min = 0.0;
+        		max = 0.0;
+        		sumx = 0.0;
+        		sumx2 = 0.0;
 				button = false;
 				total = 0;
 				digitalWrite(BUTTON_PIN, button);
 				time = 0;
-				Serial.println("Launching test");
+        		Serial.println(F("Launching test"));
 				randomSeed(analogRead(0));
 				nextchange = micros() + random(50, 70)*1000 + random(0, 250)*4;
 				break;
@@ -333,9 +350,19 @@ void loop() {
 				reading_interval = Serial.parseInt();
 				Hid.overrideInterval = reading_interval;
 				xbox.overrideInterval = reading_interval;
-				Serial.print("Override polling to ");
+        		Serial.print(F("Override polling to "));
 				Serial.print(reading_interval);
-				Serial.println("ms!");
+        		Serial.println(F("ms!"));
+        		break;
+      		case '=':
+        		Serial.print(F("min: "));
+        		Serial.println(min);
+        		Serial.print(F("max: "));
+        		Serial.println(max);
+        		Serial.print(F("average: "));
+        		Serial.println(sumx / 1000.0);
+        		Serial.print(F("stddev: "));
+        		Serial.println(sqrt(((1000.0 * sumx2) - (sumx * sumx)) / (1000.0 * (1000.0 - 1.0))));
 				break;
 		}
 	}
