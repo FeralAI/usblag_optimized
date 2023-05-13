@@ -370,6 +370,21 @@ void loop()
 			xbox.overrideInterval = 1;
 			Serial.println(F("Override polling interval to 1ms!"));
 			break;
+		case '2':
+			Hid.overrideInterval = 2;
+			xbox.overrideInterval = 2;
+			Serial.println(F("Override polling interval to 2ms!"));
+			break;
+		case '4':
+			Hid.overrideInterval = 4;
+			xbox.overrideInterval = 4;
+			Serial.println(F("Override polling interval to 4ms!"));
+			break;
+		case '8':
+			Hid.overrideInterval = 8;
+			xbox.overrideInterval = 8;
+			Serial.println(F("Override polling interval to 8ms!"));
+			break;
 		case 'n':
 			Hid.overrideInterval = 0;
 			xbox.overrideInterval = 0;

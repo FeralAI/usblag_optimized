@@ -31,6 +31,9 @@ The serial monitor will support different commands to play with your device:
 | 1 | Set the button signal to True |
 | t | Fire a test of 1000 data points |
 | o | Override polling interval to 1ms |
+| 2 | Override polling interval to 2ms |
+| 4 | Override polling interval to 4ms |
+| 8 | Override polling interval to 8ms |
 | p | Override polling interval like a PC would do |
 | n | Set the polling interval back to normal |
 | sX | Override polling interval to Xms |
