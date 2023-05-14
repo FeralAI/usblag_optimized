@@ -2,13 +2,13 @@
 
 Arduino Project to measure USB Controller input lag...optimized.
 
-This is an optimized version of the original lag testing sketch by Loïc *WydD* Petit. Check out the [https://inputlag.science](https://inputlag.science/controller/methodology) site for more detail regarding hardware setup and test methodology. The original sketch can be found on here: https://gitlab.com/loic.petit/usblag.
+This is an optimized version of the original lag testing sketch by Loïc *WydD* Petit. Check out the [https://inputlag.science](https://inputlag.science/controller/methodology) site for more detail regarding hardware setup and test methodology. The original sketch can be found here: https://gitlab.com/loic.petit/usblag.
 
 Here are the improvements over the original sketch:
 
 * Tuned core input loop logic to reduce unnecessary overhead
   * Test results will be around ~0.1ms faster than the original sketch, and very close the results from the [MiSTer Input Latency Tester](https://github.com/misteraddons/inputlatency)
-  * See test results immediately after test by pressing `=` (thanks [@bsas](https://github.com/bsas)!)
+* See test results immediately after test by pressing `=` (thanks [@bsas](https://github.com/bsas)!)
 
 **Keep in mind [results from the original `usblag` sketch](https://inputlag.science/controller/results) are not directly comparable to results from this optimized version!**
 
